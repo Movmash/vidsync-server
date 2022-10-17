@@ -1,10 +1,11 @@
+const express = require('express')
+const app = express()
+const server = require('http').createServer(app);
+const io = require('socket.io')(server)
 const PORT = process.env.PORT || 3000;
+
 const { addUser, getUserDetail, removeUser, getHostDetail } = require("./util/userManagement");
-const io = require("socket.io")(PORT, {
-  cors: {
-    origin: '*',
-  },
-});
+
 console.log(`server start at port ${PORT}`);
 io.sockets.on("connection", (socket) => {
     console.log(`socket ID: ${socket.id} connected`);
@@ -44,4 +45,12 @@ io.sockets.on("connection", (socket) => {
       removeUser(socket.id);
     })
 
+})
+
+server.prependListener("request", (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+});
+
+server.listen(PORT, () => {
+  console.log(`server is started at ${PORT}`);
 })
