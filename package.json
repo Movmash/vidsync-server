@@ -11,7 +11,6 @@
   "author": "Ankur Kunal",
   "license": "ISC",
   "dependencies": {
-    "shortid": "^2.2.16",
     "socket.io": "^4.5.2"
   }
 }

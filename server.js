@@ -1,5 +1,4 @@
-const shortId = require("shortid");
-const { addUser, getUsersInRoom, getUserDetail, removeUser, getHostDetail } = require("./util/userManagement");
+const { addUser, getUserDetail, removeUser, getHostDetail } = require("./util/userManagement");
 const io = require("socket.io")(3000, {
   cors: {
     origin: true,
@@ -7,18 +6,13 @@ const io = require("socket.io")(3000, {
 });
 
 io.sockets.on("connection", (socket) => {
-    const roomId = "thisisrandomroomId";
-    const userList = getUsersInRoom(roomId);
-    if(userList.length == 0) addUser({id: socket.id,room: roomId, host: true });
-    else addUser({id: socket.id, room: roomId, host: false});
-      
-    console.log(socket.id, roomId); 
-    socket.emit("connected",{message: `${socket.id} connected to the server`});
-    socket.on("create-room", () => {
-        
+    console.log(`socket ID: ${socket.id} connected`);
+    
+    socket.on("joinroom", ({roomId, host}) => {
         socket.join(roomId);
+        addUser({id: socket.id, room: roomId, host});
         const userDetail = getUserDetail(socket.id);
-        socket.emit("create-room", {host: userDetail.host ,roomId})
+        socket.emit("joinroom", {host: userDetail.host ,roomId})
     })
 
     socket.on("onplay", ({ roomId, videoState }) => {
@@ -43,6 +37,9 @@ io.sockets.on("connection", (socket) => {
 
     socket.on("disconnect", () => {
       console.log(`socket ID: ${socket.id} disconnected`);
+      const userDetail = getUserDetail(socket.id);
+      if(userDetail)
+        socket.leave(userDetail.room);
       removeUser(socket.id);
     })
 
