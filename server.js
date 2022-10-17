@@ -1,10 +1,11 @@
+const PORT = process.env.PORT || 3000;
 const { addUser, getUserDetail, removeUser, getHostDetail } = require("./util/userManagement");
-const io = require("socket.io")(3000, {
+const io = require("socket.io")(PORT, {
   cors: {
     origin: true,
   },
 });
-
+console.log(`server start at port ${PORT}`);
 io.sockets.on("connection", (socket) => {
     console.log(`socket ID: ${socket.id} connected`);
     
