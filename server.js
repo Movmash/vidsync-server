@@ -1,5 +1,6 @@
-const express = require('express')
-const app = express()
+const express = require('express');
+const cors = require("cors");
+const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server)
 const PORT = process.env.PORT || 3000;
@@ -19,12 +20,16 @@ io.sockets.on("connection", (socket) => {
 
     socket.on("onplay", ({ roomId, videoState }) => {
       const userDetail = getUserDetail(socket.id);
+      if(userDetail)
       socket.broadcast.to(roomId).emit("onplay", {host: userDetail.host, videoState });
     });
 
     socket.on("onpause", ({roomId, videoState}) => {
       const userDetail = getUserDetail(socket.id);
-      socket.broadcast.to(roomId).emit("onpause", {host: userDetail.host, videoState})
+      if (userDetail)
+        socket.broadcast
+          .to(roomId)
+          .emit("onpause", { host: userDetail.host, videoState });
     })
 
     socket.on("syncwithhost", ({roomId}) => {
