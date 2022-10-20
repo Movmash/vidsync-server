@@ -33,6 +33,11 @@ io.sockets.on("connection", (socket) => {
           .emit("onpause", { host: userDetail.host, videoState });
     })
 
+    socket.on("onseeked", ({ roomId, videoState}) => {
+      const userDetail = getUserDetail(socket.id);
+      socket.broadcast.to(roomId).emit("onseeked", {host: userDetail.host, videoState });
+    })
+
     socket.on("syncwithhost", ({roomId}) => {
       const hostDetail = getHostDetail(roomId);
       if(hostDetail)
