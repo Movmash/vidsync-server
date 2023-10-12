@@ -1,9 +1,10 @@
 const users = [];
-const addUser = ({ id, room, host }) => {
+const addUser = ({ id, room, name, host }) => {
   const user = {
     id,
     room,
     host,
+    name,
   };
 
   users.push(user);

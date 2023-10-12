@@ -1,7 +1,7 @@
 const express = require('express');
-const cors = require("cors");
+// const cors = require("cors");
 const app = express();
-app.use(cors());
+// app.use(cors());
 const server = require('http').createServer(app);
 const io = require('socket.io')(server)
 const PORT = process.env.PORT || 3000;
@@ -12,11 +12,11 @@ console.log(`server start at port ${PORT}`);
 io.sockets.on("connection", (socket) => {
     console.log(`socket ID: ${socket.id} connected`);
     
-    socket.on("joinroom", ({roomId, host}) => {
+    socket.on("joinroom", ({ roomId, host, name }) => {
         socket.join(roomId);
-        addUser({id: socket.id, room: roomId, host});
+        addUser({ id: socket.id, room: roomId, host, name });
         const userDetail = getUserDetail(socket.id);
-        socket.emit("joinroom", {host: userDetail.host ,roomId})
+        socket.emit("joinroom", {host: userDetail.host ,roomId, name})
     })
 
     socket.on("onplay", ({ roomId, videoState }) => {
@@ -48,11 +48,23 @@ io.sockets.on("connection", (socket) => {
       socket.broadcast.to(roomId).emit("hostvideostate", {hostVideoState: videoState});
     });
 
+    socket.on("notify", (messageData) => {
+      const { name, message, host, roomId } = messageData
+      socket.broadcast.to(roomId).emit("notify", { name, message, host, roomId })
+    });
+
+    socket.on("chatmessage", (messageData) => {
+      const { name, message, host, roomId } = messageData
+      socket.broadcast.to(roomId).emit("chatmessage", { name, message, host, roomId })
+    });
+
     socket.on("disconnect", () => {
       console.log(`socket ID: ${socket.id} disconnected`);
       const userDetail = getUserDetail(socket.id);
-      if(userDetail)
+      if(userDetail) {
+        socket.to(userDetail.room).emit("notify", { ...userDetail, message: `${userDetail.name} left`})
         socket.leave(userDetail.room);
+      }
       removeUser(socket.id);
     })
 
