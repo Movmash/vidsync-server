@@ -4,19 +4,24 @@ const app = express();
 // app.use(cors());
 const server = require('http').createServer(app);
 const io = require('socket.io')(server)
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 1234;
 
 const { addUser, getUserDetail, removeUser, getHostDetail } = require("./util/userManagement");
 
 console.log(`server start at port ${PORT}`);
-io.sockets.on("connection", (socket) => {
+io.on("connection", (socket) => {
     console.log(`socket ID: ${socket.id} connected`);
     
     socket.on("joinroom", ({ roomId, host, name }) => {
         socket.join(roomId);
+      console.log("user joined: ",{ roomId, host, name })
         addUser({ id: socket.id, room: roomId, host, name });
         const userDetail = getUserDetail(socket.id);
         socket.emit("joinroom", {host: userDetail.host ,roomId, name})
+        const hostDetail = getHostDetail(roomId);
+        console.log(hostDetail)
+        if (hostDetail)
+          socket.broadcast.to(hostDetail.id).emit("syncwithhost");
     })
 
     socket.on("onplay", ({ roomId, videoState }) => {
@@ -40,11 +45,13 @@ io.sockets.on("connection", (socket) => {
 
     socket.on("syncwithhost", ({roomId}) => {
       const hostDetail = getHostDetail(roomId);
+      console.log(hostDetail)
       if(hostDetail)
       socket.broadcast.to(hostDetail.id).emit("syncwithhost");
     });
 
     socket.on("hostvideostate", ({roomId, videoState}) => {
+      // console.log("hostvideostate", { roomId, videoState })
       socket.broadcast.to(roomId).emit("hostvideostate", {hostVideoState: videoState});
     });
 
