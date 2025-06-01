@@ -20,8 +20,10 @@ io.on("connection", (socket) => {
         socket.emit("joinroom", {host: userDetail.host ,roomId, name})
         const hostDetail = getHostDetail(roomId);
         console.log(hostDetail)
-        if (hostDetail)
+        if (hostDetail) {
+          console.log("sending syncwithhost", JSON.stringify(hostDetail));
           socket.broadcast.to(hostDetail.id).emit("syncwithhost");
+        }
     })
 
     socket.on("onplay", ({ roomId, videoState }) => {
